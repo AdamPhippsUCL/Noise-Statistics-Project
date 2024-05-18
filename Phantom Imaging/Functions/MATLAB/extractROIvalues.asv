@@ -1,0 +1,19 @@
+function extractROIvalues(imagefname, ROIname, opts)
+
+arguments
+    imagefname % filnemae of image DICOM
+    ROIname % name of ROI
+
+    % Options
+    opts.savetype = 'mat' % data type to save ROI values
+
+    opts.pyfile = "C:\Users\adam\OneDrive - University College London\UCL PhD\PhD Year 1\Projects\VERDICT Screening\Code\VERDICT-Screening\Noise Statistics\Functions\Python\extractROIvalues.py"
+    
+
+
+end
+
+
+
+
+end
