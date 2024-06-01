@@ -455,7 +455,6 @@ binfreqs = reshape(binfreqs, size(x));
 
 end
 
-
 % Function to fit DTI Rice distribution
 
 function binfreqs = DTIRiceDist2(b, x)

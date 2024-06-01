@@ -10,7 +10,7 @@ arguments
     opts.savetype = 'mat' % data type to save ROI values
     opts.savefolder = "C:\Users\adam\OneDrive - University College London\UCL PhD\PhD Year 1\Projects\VERDICT Screening\Outputs\Noise Statistics\20240226\ROI values"
     opts.imagefolder = "C:\Users\adam\OneDrive - University College London\UCL PhD\PhD Year 1\Projects\VERDICT Screening\Outputs\Noise Statistics\20240226\Images"
-    opts.pyfile = "C:\Users\adam\OneDrive - University College London\UCL PhD\PhD Year 1\Projects\VERDICT Screening\Code\VERDICT-Screening\Noise Statistics\Functions\Python\extractROIvalues.py"
+    opts.pyfile = "C:\Users\adam\OneDrive - University College London\UCL PhD\PhD Year 1\Projects\Noise Statistics Project\Code\Noise-Statistics-Project\Phantom Imaging\Functions\Python\extractROIvalues.py"
 
 end
 

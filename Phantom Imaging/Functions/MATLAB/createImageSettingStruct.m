@@ -159,7 +159,7 @@ switch date
 
     case '20240319'
         
-        dicomfolder = "C:\Users\adam\OneDrive - University College London\UCL PhD\PhD Year 1\Projects\VERDICT Screening\Imaging Data\20240319_AdamPhantom3\DICOM\DICOM";
+        dicomfolder = "C:\Users\adam\OneDrive - University College London\UCL PhD\PhD Year 1\Projects\Noise Statistics Project\Imaging Data\20240319_AdamPhantom3\DICOM\DICOM";
         
         switch experiment
 
@@ -172,21 +172,22 @@ switch date
                 NSAs = {1,1,1,1,1,1,1,1,1,1};
                 Nav_ratios = {3, 3, 3, 3, 3, 3, 3, 3, 3, 3};
             
+
             case 2
+
+                image_nums = {'IM_0051', 'IM_0054', 'IM_0057', 'IM_0060', 'IM_0063'};
+                bvals = { 2500, 2500, 2500, 2500, 2500};
+                TEs = { 300, 300, 300, 300, 300};
+                NSAs = {2,2,2,2,2};
+                Nav_ratios = { 1*3, 2*3, 4*3, 6*3, 8*3};
+
+            case 3
 
                 image_nums = {'IM_0009', 'IM_0039', 'IM_0042', 'IM_0045', 'IM_0048'};
                 bvals = {2500, 2500, 2500, 2500, 2500};
                 TEs = {300, 300, 300, 300, 300};
                 NSAs = {1, 2, 4, 6, 8};
                 Nav_ratios =  {3, 3, 3, 3, 3};
-
-            case 3
-
-                image_nums = {'IM_0009', 'IM_0051', 'IM_0054', 'IM_0057', 'IM_0060', 'IM_0063'};
-                bvals = {2500, 2500, 2500, 2500, 2500, 2500};
-                TEs = {300, 300, 300, 300, 300, 300};
-                NSAs = {1,2,2,2,2,2};
-                Nav_ratios = {3, 1, 2, 4, 6, 8};
 
         end
 
