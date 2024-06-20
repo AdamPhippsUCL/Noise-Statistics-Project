@@ -9,7 +9,7 @@ folder = "C:\Users\adam\OneDrive - University College London\UCL PhD\PhD Year 1\
 Nsample = 25000;
 
 % Rav values
-Ravs = [3, 6, 12, 18, 24];
+Ravs = [2, 3, 6, 12, 18, 24];
 
 % Define SNR
 SNRs = linspace(0.1,10,100);
@@ -45,7 +45,8 @@ for SNR = SNRs
     for RavIndx = 1:length(Ravs)
     
         Rav = Ravs(RavIndx);
-        % disp(Rav)
+
+
         %% Take samples
         
         % Sample distributions
@@ -66,8 +67,8 @@ for SNR = SNRs
         
         
         
-        % %% Display original PDF and histogram of samples
-
+        %% Display original PDF and histogram of samples
+        % 
         % % Define bin edges
         % binedges = signals;
         % binwidth = binedges(2)-binedges(1);
@@ -78,7 +79,7 @@ for SNR = SNRs
         % hold on
         % H = histogram(samples, binedges);
         % counts = H.Values;
-        
+
         
         
         %% Fit Rician distribution to samples 
@@ -113,8 +114,7 @@ for SNR = SNRs
     save([char(folder) '/SNR ' num2str(SNR) '/MeanCalibration.mat'], 'MeanDict' )
 
     SigmaDict = dictionary(Ravs, FitSigmas/sigma);
-    save([char(folder) '/SNR ' num2str(SNR) '/SigmaCalibration.mat'], 'MeanDict' )
-    
+    save([char(folder) '/SNR ' num2str(SNR) '/SigmaCalibration.mat'], 'SigmaDict' )
 
 
 end

@@ -15,8 +15,8 @@ arguments
     opts.T2train = 100
 
     % T2 and sigma0 values of trained MLPs
-    opts.possibleT2s = [100];
-    opts.possiblesigma0s = [0.05]
+    opts.possibleT2s = [80];
+    opts.possiblesigma0s = [0.025]
 
     % mask
     opts.mask = []
@@ -25,14 +25,15 @@ arguments
     opts.scheme = []
 
     % == Folders
-    opts.FolderPath = 'C:\Users\adam\OneDrive - University College London\UCL PhD\PhD Year 1\Projects\VERDICT Screening\Code\VERDICT-Screening\Noise Statistics\MLP\VERDICT Simulations'
+    opts.FolderPath = char("C:\Users\adam\OneDrive - University College London\UCL PhD\PhD Year 1\Projects\Noise Statistics Project\Code\Noise-Statistics-Project\VERDICT Simulations")
+
     % Schemes
-    opts.schemesfolder = 'C:\Users\adam\OneDrive - University College London\UCL PhD\PhD Year 1\Projects\VERDICT Screening\Code\VERDICT-Screening\General Code\Model Fitting\MLP\My Tests\Schemes'
+    opts.schemesfolder = char("C:\Users\adam\OneDrive - University College London\UCL PhD\PhD Year 1\Projects\Noise Statistics Project\Code\Noise-Statistics-Project\VERDICT Simulations\Schemes")
 
     % Python MLP folder
-    opts.pythonfolder = 'C:\Users\adam\OneDrive - University College London\UCL PhD\PhD Year 1\Projects\VERDICT Screening\Code\VERDICT-Screening\General Code\Model Fitting\MLP\My Tests\Python'
+    opts.pythonfolder = char("C:\Users\adam\OneDrive - University College London\UCL PhD\PhD Year 1\Projects\Short VERDICT Project\Code\Short-VERDICT-Project\Model Fitting\MLP\Python")
 
-    opts.modelsfolder = 'C:\Users\adam\OneDrive - University College London\UCL PhD\PhD Year 1\Projects\VERDICT Screening\Code\VERDICT-Screening\Noise Statistics\MLP\VERDICT Simulations\MLP Models'
+    opts.modelsfolder = char("C:\Users\adam\OneDrive - University College London\UCL PhD\PhD Year 1\Projects\Noise Statistics Project\Code\Noise-Statistics-Project\VERDICT Simulations\MLP Models")
 end
 
 % Scheme folder
@@ -103,13 +104,15 @@ pyfname = [opts.pythonfolder '/callMLP.py' ];
 indx = 0;
 for T2 = opts.possibleT2s
     for sigma0 = opts.possiblesigma0s
+        
         indx = indx+1;
 
         thisschemename = [schemename '/' opts.noisetype '/T2_' num2str(T2) '/sigma_' num2str(sigma0)];
         % thisschemename = schemename;
 
         % Load some META data about MLP model
-        load([opts.FolderPath '/MLP Models/' modeltype '/' thisschemename '/Meta.mat'])
+        load([opts.modelsfolder '/' modeltype '/' thisschemename '/Meta.mat'])
+        % load([opts.FolderPath '/MLP Models/' modeltype '/' thisschemename '/Meta.mat'])
         
         % Radii used in fitting
         Rs = FitMeta.TrainingDataMeta.Rs;

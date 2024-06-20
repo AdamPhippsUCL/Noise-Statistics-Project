@@ -5,8 +5,8 @@ function [FittingBiases, FittingVariances] = NS_EvaluateFitting(opts)
 arguments
 
     % Noise parameters 
-    opts.T2s = [40, 80, 120, 40, 80, 120, 40, 80, 120]
-    opts.sigma0s = [0.01, 0.01, 0.01, 0.0275, 0.0275, 0.0275, 0.045, 0.045, 0.045]
+    opts.T2s = [40,60,80];%[40, 80, 120, 40, 80, 120, 40, 80, 120]
+    opts.sigma0s = [0.025, 0.25, 0.25];%[0.01, 0.01, 0.01, 0.0275, 0.0275, 0.0275, 0.045, 0.045, 0.045]
 
     % parameters of constant ratio distribution
     opts.T2const = 10000;

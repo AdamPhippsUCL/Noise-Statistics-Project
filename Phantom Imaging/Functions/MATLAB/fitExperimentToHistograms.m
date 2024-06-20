@@ -10,7 +10,7 @@ arguments
     opts.binmin=0
     opts.binmax=2
     opts.nbin=100
-    opts.paramtolerance = 0.05 % Fraction tolerance in fitted T2 and ADC values
+    opts.paramtolerance = 0.1 % Fraction tolerance in fitted T2 and ADC values
     opts.sigma0max = 0.25
     opts.DiffDirec = 0 % Diffusion direcion
     opts.imagefolder = "C:\Users\adam\OneDrive - University College London\UCL PhD\PhD Year 1\Projects\Noise Statistics Project\Imaging Data"
@@ -93,9 +93,11 @@ for imageIndx = 1:Nimage
         ADC = ROIinfo(ROIindx).ADC;
         T2 = ROIinfo(ROIindx).T2;
 
+
         % Check if ROI exists, if not: define one!
         if ~exist([ROIfolder '/' SeriesDescription '/' ROIname '.img'], 'file')
-            error(['ROI: ' ROIname ' not saved for image: ' SeriesDescription])
+            disp(['ROI: ' ROIname ' not saved for image: ' SeriesDescription])
+            continue
         end
 
 
@@ -143,7 +145,7 @@ for imageIndx = 1:Nimage
         binspacing = bincenters(2)-bincenters(1);
         
         f = figure;%('visible','off');
-        H = histogram(ROIvals, binedges, FaceColor = [0 0.4470 0.741], FaceAlpha = 0.25);
+        H = histogram(ROIvals, binedges, FaceColor = [0 0.4470 0.741], FaceAlpha = 0.25, DisplayName = 'ROI values');
         hold on;
         counts = H.Values;
         
@@ -151,12 +153,6 @@ for imageIndx = 1:Nimage
         while max(counts) > 0.1*sum(counts)
 
             nbin = 2*nbin;
-
-            % if max(ROIvals)<binmax
-            %     binmax = 0.5*binmax;
-            % else
-            %     nbin = 2*nbin;
-            % end
 
             binedges = linspace(binmin, binmax, nbin+1);
             bincenters = (binedges(:,1:end-1) + binedges(:,2:end)) / 2 ;
@@ -168,29 +164,44 @@ for imageIndx = 1:Nimage
             counts = H.Values;
         end
 
-        % close(f);
 
 
         % === Fit to histogram
-      
-        % Predicted diffusion signal fraction
-        fd = exp(-ADC*bval);
+ 
         
         % Initial guess
-        beta0guess = [std(ROIvals), T2, exp(-ADC*bval)];
-        
-        % lowerbound
-        a = (1-opts.paramtolerance);
-        b = (1+opts.paramtolerance);
+        sigma0guess = std(ROIvals)*(sqrt(2)*exp(TE/T2));
+        fdguess = mean(ROIvals);
 
-        lb = [0.001, a*T2, a*exp(-ADC*bval)];
-        ub = [opts.sigma0max, b*T2, b*exp(-ADC*bval)];
+        beta0guess = [0.018, T2, exp(-ADC*bval)];
+
+        % Bounds
+        % ADClb = ROIinfo(ROIindx).ADClb;
+        % ADCub = ROIinfo(ROIindx).ADCub;
+        % T2lb = ROIinfo(ROIindx).T2lb;
+        % T2ub = ROIinfo(ROIindx).T2ub;
+
+        ADClb = ADC - 0.5e-4;
+        ADCub = ADC + 0.5e-4;
+
+        T2lb = T2-100;
+        T2ub = T2+100;
+        
+        if strcmp(opts.disttype, 'Rice')
+            lb = [0.001, T2-eps, exp(-(ADCub)*bval)];
+            ub = [opts.sigma0max, T2+eps, exp(-(ADClb)*bval)];
+        elseif strcmp(opts.disttype, 'Ratio')
+            lb = [0.001, T2lb, exp(-(ADCub)*bval)];
+            ub = [opts.sigma0max, T2ub, exp(-(ADClb)*bval)];
+        end
+
         % if 0.999>b*exp(-ADC*bval)
         %     ub = [opts.sigma0max, b*T2, b*exp(-ADC*bval)];
         % else
         %     ub = [opts.sigma0max, b*T2,0.9999];
         % end
-        % 
+
+
         % Set parameters to NaN if not fixed in fitting
         T2 = NaN;
         fd = NaN;       
@@ -229,10 +240,17 @@ for imageIndx = 1:Nimage
         
         hold on
         
-        xlabel('Normalised signal')
+        xlabel('Normalized signal')
         ylabel('Counts')
-        plot(signals, dist*binspacing*sum(counts), LineWidth = 2, DisplayName = opts.disttype, color = "#D95319");
+        if strcmp(opts.disttype, 'Ratio')
+            plot(signals, dist*binspacing*sum(counts), LineWidth = 2, DisplayName = [opts.disttype ' distribution'], color = "#D95319");
+        else
+            plot(signals, dist*binspacing*sum(counts), LineWidth = 2, DisplayName = [opts.disttype ' distribution'], color = "#7E2F8E");
+        end
 
+        ax = gca();
+        ax.FontSize = 12;
+        legend;
         close(f);
 
         % Fill out fitting results structure
@@ -253,7 +271,8 @@ end
 
 %% Plot results
 
-
+colordict = dictionary([1,2,3,4,5,6,7,8], [	"#0072BD", 	"#D95319",	"#EDB120", 	"#7E2F8E", "#77AC30", "#4DBEEE", "#A2142F", "#e981cd"]);
+concentrations = ["50% PVP", "40% PVP", "30% PVP", "20% PVP", "10% PVP", "5% PVP", "2.5% PVP", "1mM NiCl_2"];
 
 switch experiment
 
@@ -276,13 +295,13 @@ switch experiment
             ROIname = ROIinfo(ROIindx).ROIname;
             ROInames = [ROInames string(ROIname)];
             ROInum = ROIinfo(ROIindx).ROInum;
-        
+            
             % ROI bools
             ROIbools = ([FittingResults.ROIindx] == ROIindx);
         
             % Extract sigma0 measurements
             Sigma0s(ROIindx, :) = [FittingResults(ROIbools).sigma0];
-            scatter(ROIindx*ones(Nimage, 1), Sigma0s(ROIindx, :), '*')
+            scatter(ROIindx*ones(Nimage, 1), Sigma0s(ROIindx, :), '*', MarkerEdgeColor = colordict(ROIindx), DisplayName = concentrations(ROIindx)) 
             hold on
         
         end
@@ -291,10 +310,13 @@ switch experiment
         xticks(linspace(1,NROI,NROI))
         xticklabels(ROInames)
         ylabel('Estimated \sigma_0')
-        ylim([0, opts.sigma0max])
+        % xlabel('Concentration')
+        ylim([0, 0.2]);%opts.sigma0max])
         grid on
         title(opts.disttype)
-        
+        legend;
+        ax = gca();
+        ax.FontSize = 12;
         
         % === Figure 2: T2 estimation
         
@@ -303,7 +325,8 @@ switch experiment
         fig2 = figure;
         
         ROInames  = [];
-        T2prcnterrs = zeros(NROI, Nimage);
+        T2s = zeros(NROI, Nimage);
+        T2errs = zeros(NROI, Nimage);
         
         for ROIindx = 1:NROI
         
@@ -315,20 +338,30 @@ switch experiment
             % ROI bools
             ROIbools = ([FittingResults.ROIindx] == ROIindx);
         
-            % Extract T2 measurements error presentages
-            T2prcnterrs(ROIindx, :) = 100*([FittingResults(ROIbools).T2fit] - ROIinfo(ROIindx).T2)/ROIinfo(ROIindx).T2;
-            scatter(ROIindx*ones(Nimage, 1), T2prcnterrs(ROIindx, :), '*')
+            % % Extract T2 measurements error presentages
+            % T2errs(ROIindx, :) = ([FittingResults(ROIbools).T2fit] - ROIinfo(ROIindx).T2);%/ROIinfo(ROIindx).T2;
+            % scatter(ROIindx*ones(Nimage, 1), T2errs(ROIindx, :), '*')
+            % hold on
+
+            trueT2 = ROIinfo(ROIindx).T2;
+            T2s(ROIindx, : ) = ([FittingResults(ROIbools).T2fit]);
+            scatter(ROIindx*ones(Nimage, 1), T2s(ROIindx, :), '*', MarkerEdgeColor = colordict(ROIindx), DisplayName = concentrations(ROIindx)) 
             hold on
+            scatter([ROIindx+0.4], [trueT2], MarkerEdgeColor = 'black', MarkerFaceColor='black', Marker = 'o', HandleVisibility = 'off')
+
         end
         
-        boxplot(transpose(T2prcnterrs))
+        boxplot(transpose(T2s))
         xticks(linspace(1,NROI,NROI))
         xticklabels(ROInames)
-        ylabel('Estimated T2 percentage error')
-        ylim([-15,15])
+        ylabel('Estimated T2')
+        % xlabel('Concentration')
+        ylim([0,1000])
         grid on
         title(opts.disttype)
-        
+        % legend;
+        ax = gca();
+        ax.FontSize = 12;
         
         % === Figure 3: ADC estimation
         
@@ -337,7 +370,8 @@ switch experiment
         fig3 = figure;
         
         ROInames  = [];
-        ADCprcnterrs = zeros(NROI, Nimage);
+        ADCs = zeros(NROI, Nimage);
+        ADCerrs = zeros(NROI, Nimage);
         fdprcnterrs = zeros(NROI, Nimage);
         
         for ROIindx = 1:NROI
@@ -356,41 +390,51 @@ switch experiment
             % hold on
 
             % % Extract fd measurements error precentages
-            theseFittingResults = FittingResults(ROIbools);
-            ADCfits = [theseFittingResults.ADCfit];
+            % theseFittingResults = FittingResults(ROIbools);
+            % ADCfits = [theseFittingResults.ADCfit];
+            % 
+            % trueADC = ROIinfo(ROIindx).ADC;
+            % 
+            % for imgindx = 1:Nimage
+            %     thisADC = ADCfits(imgindx);
+            %     thisimgsettings = theseFittingResults(imgindx).ImageSettings;
+            %     thisbval = thisimgsettings.bval;
+            % 
+            % 
+            %     thisfd = exp(-thisADC*thisbval);
+            %     truefd = exp(-trueADC*thisbval);
+            % 
+            %     fdprcnterr = 100*(thisfd-truefd)/truefd;
+            % 
+            %     fdprcnterrs(ROIindx, imgindx) = fdprcnterr;
+            % 
+            % 
+            % end
+            
+            % ADCerrs(ROIindx, :) = ([FittingResults(ROIbools).ADCfit] - ROIinfo(ROIindx).ADC);%/ROIinfo(ROIindx).ADC;
+            % scatter(ROIindx*ones(Nimage, 1), ADCerrs(ROIindx, :), '*')
+            % hold on
 
             trueADC = ROIinfo(ROIindx).ADC;
-
-            for imgindx = 1:Nimage
-                thisADC = ADCfits(imgindx);
-                thisimgsettings = theseFittingResults(imgindx).ImageSettings;
-                thisbval = thisimgsettings.bval;
-
-
-                thisfd = exp(-thisADC*thisbval);
-                truefd = exp(-trueADC*thisbval);
-
-                fdprcnterr = 100*(thisfd-truefd)/truefd;
-
-                fdprcnterrs(ROIindx, imgindx) = fdprcnterr;
-
-
-            end
-            
-            % fdprcnterrs(ROIindx, :) = 100*([FittingResults(ROIbools).ADCfit] - ROIinfo(ROIindx).ADC)/ROIinfo(ROIindx).ADC;
-            scatter(ROIindx*ones(Nimage, 1), fdprcnterrs(ROIindx, :), '*')
+            ADCs(ROIindx, :) = ([FittingResults(ROIbools).ADCfit]);
+            scatter(ROIindx*ones(Nimage, 1), ADCs(ROIindx, :), '*', MarkerEdgeColor = colordict(ROIindx), DisplayName = concentrations(ROIindx))
             hold on
+            scatter([ROIindx+0.4], [trueADC], MarkerEdgeColor = 'black', MarkerFaceColor='black', Marker = 'o', HandleVisibility='off')
 
         end
         
-        boxplot(transpose(fdprcnterrs))
+        % boxplot(transpose(fdprcnterrs))
+        boxplot(transpose(ADCs))
         xticks(linspace(1,NROI,NROI))
         xticklabels(ROInames)
-        ylabel('Estimated $f_{d}$ percentage error')
-        ylim([-15,15])
+        ylabel('Estimated D (mm^2/s)')
+        % xlabel('Concentration')
+        ylim([0,1.2e-3])
         grid on
         title(opts.disttype)
-        
+        % legend;
+        ax = gca();
+        ax.FontSize = 12;
         
         
         
@@ -427,7 +471,9 @@ switch experiment
         % ylim([0,10e-3])
         grid on
         title(opts.disttype)
-
+        ax = gca();
+        ax.FontSize = 12;
+        
 
 
     case 2
@@ -441,12 +487,15 @@ switch experiment
             sigma0s = [FittingResults(bools).sigma0];
             Ravs = [ImageSettings(:).Nav_ratio];
 
-            plot(Ravs, sigma0s, '*-', DisplayName = ['ROI ' num2str(ROIindx)])
+            plot(Ravs, sigma0s, '*-', DisplayName = ['ROI ' num2str(ROIindx)], Color = colordict(ROIindx))
             hold on
-            xlabel('R_{av}')
+            xlabel('N_{b>0}')
             ylabel('\sigma_0')
             ylim([0,0.1])
-            legend
+            legend(NumColumns = 2)
+            ax = gca();
+            ax.FontSize = 12;
+        
         end
 
         figure;
@@ -454,17 +503,20 @@ switch experiment
         % Scatter plot for each ROI
         for ROIindx = opts.ROInums
 
+            trueT2 = ROIinfo(ROIindx).T2;
             bools = [FittingResults.ROIindx] == ROIindx;
             T2s = [FittingResults(bools).T2fit];
             Ravs = [ImageSettings(:).Nav_ratio];
 
-            plot(Ravs, T2s, '*-', DisplayName = ['ROI ' num2str(ROIindx)])
+            plot(Ravs, T2s, '*-', DisplayName = ['ROI ' num2str(ROIindx)], Color = colordict(ROIindx))
             hold on
-            xlabel('R_{av}')
+            plot(Ravs, trueT2*ones(size(Ravs)), '--', Color = colordict(ROIindx))
+            xlabel('N_{b>0}')
             ylabel('T2 (ms)')
             ylim([0,1000])
             xlim([1, 25])
-       
+            ax = gca();
+            ax.FontSize = 12;       
             % legend
         end
 
@@ -474,17 +526,21 @@ switch experiment
         % Scatter plot for each ROI
         for ROIindx = opts.ROInums
 
+            trueADC = ROIinfo(ROIindx).ADC;
             bools = [FittingResults.ROIindx] == ROIindx;
             ADCs = [FittingResults(bools).ADCfit];
             Ravs = [ImageSettings(:).Nav_ratio];
 
-            plot(Ravs, ADCs, '*-', DisplayName = ['ROI ' num2str(ROIindx)])
+            plot(Ravs, ADCs, '*-', DisplayName = ['ROI ' num2str(ROIindx)], Color = colordict(ROIindx))
             hold on
-            xlabel('R_{av}')
-            ylabel('ADC (mm^2/s)')
+            plot(Ravs, trueADC*ones(size(Ravs)), '--', Color = colordict(ROIindx))
+            % plot(Ravs, )
+            xlabel('N_{b>0}')
+            ylabel('D (mm^2/s)')
             ylim([0,1.2e-3])
             xlim([1, 25])
-       
+            ax = gca();
+            ax.FontSize = 12;       
             % legend
         end
        

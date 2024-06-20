@@ -1,0 +1,1 @@
+% VERDICT fitting function (incl. adaptive noise fitting).

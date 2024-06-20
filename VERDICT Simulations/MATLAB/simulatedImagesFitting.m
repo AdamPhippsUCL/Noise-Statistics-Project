@@ -1,14 +1,18 @@
 % Matlab script to make simulated image with different T2 and sigma0 values
 
+schemesfolder = char("C:\Users\adam\OneDrive - University College London\UCL PhD\PhD Year 1\Projects\Noise Statistics Project\Code\Noise-Statistics-Project\VERDICT Simulations\Schemes");
+modelsfolder = char("C:\Users\adam\OneDrive - University College London\UCL PhD\PhD Year 1\Projects\Noise Statistics Project\Code\Noise-Statistics-Project\VERDICT Simulations\MLP Models");
+pythonfolder = char("C:\Users\adam\OneDrive - University College London\UCL PhD\PhD Year 1\Projects\Short VERDICT Project\Code\Short-VERDICT-Project\Model Fitting\MLP\Python");
 
 % sigma0
-sigma0 = 0.067;
+sigma0 = 0.02;
 
-% T2 values
-T2min = 50;
-T2max = 100;
-NT2 = 3;
-T2s = linspace(T2min, T2max, NT2);
+% % T2 values
+% T2min = 50;
+% T2max = 100;
+
+T2s = [40];%40, 60, 80, 100]%,60,80];%linspace(T2min, T2max, NT2);
+NT2 = length(T2s);
 
 % fIC
 fICmin = 0.1;
@@ -23,7 +27,7 @@ Rmax = 9;
 %% Make image
 
 % grid size
-ngrid = 25;
+ngrid = 30;
 
 % T2 grid
 T2grid = zeros(NT2*ngrid, NfIC*ngrid);
@@ -58,7 +62,7 @@ xticks([round(ngrid/2) + ngrid*(0:NfIC-1) ])
 xticklabels(fICs)
 xlabel('f_{IC}')
 title('Simulated fIC')
-saveas(fig, 'C:\Users\adam\OneDrive - University College London\UCL PhD\PhD Year 1\Projects\VERDICT Screening\Code\VERDICT-Screening\Noise Statistics\MLP\VERDICT Simulations\Figures\simfIC.fig')
+saveas(fig, "C:\Users\adam\OneDrive - University College London\UCL PhD\PhD Year 1\Projects\Noise Statistics Project\Code\Noise-Statistics-Project\VERDICT Simulations\Figures\simfIC.fig")
 
 % Radii (randomise)
 Rgrid = Rmin + rand(NT2*ngrid, NfIC*ngrid)*(Rmin - Rmax);
@@ -67,9 +71,12 @@ Rgrid = Rmin + rand(NT2*ngrid, NfIC*ngrid)*(Rmin - Rmax);
 
 %% Simulate VERDICT signals over image
 
-modeltype = 'RDI v1.3';
-schemename = 'Short Scheme NS';
-schemesfolder = 'C:\Users\adam\OneDrive - University College London\UCL PhD\PhD Year 1\Projects\VERDICT Screening\Code\VERDICT-Screening\Noise Statistics\MLP\VERDICT Simulations\Schemes';
+modeltype = 'Original VERDICT';
+schemename = 'Original ex903000';
+Rs = linspace(0.1, 15.1, 17);
+fRs = normpdf(Rs, 7, 1);
+fRs = (1/sum(fRs))*fRs;
+
 load([schemesfolder '/' schemename '.mat'])
 nscheme = length(scheme);
 
@@ -92,8 +99,11 @@ for jndx = 1:size(T2grid,1)
             fIC = fIC,...
             fEES=fEES,...
             muR = R,...
+            fRs = fRs,...
+            Rs = Rs,...
             sigma0 = sigma0,...
-            T2 = T2);
+            T2 = T2,...
+            noisetype = 'Ratio');
 
         Signals(jndx,indx,:)=signals;
 
@@ -106,10 +116,14 @@ end
 %% Fitting
 
 noisetypes = {'Ratio', 'Rice'};
-sigma0rice = 0.05;
+sigma0rice = 0.020;
 
 BiasResults = zeros(length(noisetypes), length(T2s), length(fICs));
 VarianceResults = zeros(length(noisetypes),length(T2s), length(fICs));
+
+bigfICs = repmat( zeros(size(fICgrid)) , 2*NT2 + 1, 1);
+bigfICs(1:NT2*ngrid, :) = fICgrid;
+
 
 for nindx = 1:length(noisetypes)
 
@@ -118,8 +132,8 @@ for nindx = 1:length(noisetypes)
     switch noisetype
         case 'Ratio'
         % Possible T2 and sigma0 values for Ratio
-        possibleT2s = [50, 75, 100, 125];
-        possiblesigma0s = [0.02, 0.033, 0.05];
+        possibleT2s = T2s;
+        possiblesigma0s = [sigma0];
     
         case 'Rice'
         % Possible T2 and sigma0 values for Rice
@@ -138,8 +152,13 @@ for nindx = 1:length(noisetypes)
         T2train  = T2grid, ...
         possibleT2s=possibleT2s,...
         possiblesigma0s=possiblesigma0s,...
-        schemesfolder=schemesfolder...
+        schemesfolder=schemesfolder,...
+        modelsfolder = modelsfolder,...
+        pythonfolder = pythonfolder...
         );
+
+    bigfICs(nindx*(NT2*ngrid)+1:(nindx+1)*(NT2*ngrid),: ) = fIC; 
+
 
     % Display
     fig = figure;
@@ -157,10 +176,10 @@ for nindx = 1:length(noisetypes)
 
     if strcmp(noisetype, 'Rice')
         title(['Simulation: \sigma_0 = ' num2str(sigma0) '; Fitting: Rice \sigma_0 = ' num2str(sigma0)])
-        saveas(fig, ['C:\Users\adam\OneDrive - University College London\UCL PhD\PhD Year 1\Projects\VERDICT Screening\Code\VERDICT-Screening\Noise Statistics\MLP\VERDICT Simulations\Figures\fIC ' noisetype ' (Rice sigma0 ' num2str(sigma0rice) ') sigma0 ' num2str(sigma0) '.fig'])
+        saveas(fig, ['C:\Users\adam\OneDrive - University College London\UCL PhD\PhD Year 1\Projects\Noise Statistics Project\Code\Noise-Statistics-Project\VERDICT Simulations\Figures\fIC ' noisetype ' (Rice sigma0 ' num2str(sigma0rice) ') sigma0 ' num2str(sigma0) '.fig'])
     else
         title(['Simulation: \sigma_0 = ' num2str(sigma0) '; Fitting: ' char(noisetypes(nindx)) ' \sigma_0 = ' num2str(sigma0)])
-        saveas(fig, ['C:\Users\adam\OneDrive - University College London\UCL PhD\PhD Year 1\Projects\VERDICT Screening\Code\VERDICT-Screening\Noise Statistics\MLP\VERDICT Simulations\Figures\fIC ' noisetype ' sigma0 ' num2str(sigma0) '.fig'])
+        saveas(fig, ['C:\Users\adam\OneDrive - University College London\UCL PhD\PhD Year 1\Projects\Noise Statistics Project\Code\Noise-Statistics-Project\VERDICT Simulations\Figures\fIC ' noisetype ' sigma0 ' num2str(sigma0) '.fig'])
    
     end
 
@@ -176,24 +195,38 @@ for nindx = 1:length(noisetypes)
             fICvals = fICvals(:);
             bias = mean(fICvals-fICval);
             BiasResults(nindx, T2indx, fICindx) = bias;
-            variance = var(fICvals)
+            variance = var(fICvals);
             VarianceResults(nindx, T2indx, fICindx) = variance;
         end
     end
 end
 
 
-%% Save Bias and variance results
-ResultsFolder = char("C:\Users\adam\OneDrive - University College London\UCL PhD\PhD Year 1\Projects\VERDICT Screening\Code\VERDICT-Screening\Noise Statistics\MLP\VERDICT Simulations\MATLAB\Results");
+% %% Save Bias and variance results
+% ResultsFolder = char("C:\Users\adam\OneDrive - University College London\UCL PhD\PhD Year 1\Projects\VERDICT Screening\Code\VERDICT-Screening\Noise Statistics\MLP\VERDICT Simulations\MATLAB\Results");
+% 
+% ResultsMeta = struct();
+% ResultsMeta.noisetypes = noisetypes;
+% ResultsMeta.T2s = T2s;
+% ResultsMeta.fICs = fICs;
+% 
+% save([ResultsFolder '/Meta_sigma_' num2str(sigma0) '.mat' ], "ResultsMeta");
+% save([ResultsFolder '/Bias_sigma_' num2str(sigma0) '.mat' ], "BiasResults");
+% save([ResultsFolder '/Variance_sigma_' num2str(sigma0) '.mat' ], "VarianceResults");
 
-ResultsMeta = struct();
-ResultsMeta.noisetypes = noisetypes;
-ResultsMeta.T2s = T2s;
-ResultsMeta.fICs = fICs;
 
-save([ResultsFolder '/Meta_sigma_' num2str(sigma0) '.mat' ], "ResultsMeta");
-save([ResultsFolder '/Bias_sigma_' num2str(sigma0) '.mat' ], "BiasResults");
-save([ResultsFolder '/Variance_sigma_' num2str(sigma0) '.mat' ], "VarianceResults");
+%% Display big fIC grid (for single T2 value only!)
+
+fig = figure;
+imshow(bigfICs, [0 1], 'InitialMagnification', 50);
+c = colorbar;
+ylabel(c, 'f_{IC}')
+h = gca;
+h.Visible = 'On';
+yticks([round(ngrid/2) + ngrid*(0:3*NT2-1) ])
+yticklabels(["Simulated", "Ratio", "Rice"])
+xticks([])
+
 
 %% Display bias and variance results
 
@@ -215,7 +248,7 @@ xlabel('f_{IC}')
 ylabel('Bias')
 title(['\sigma_0 = ' num2str(sigma0)])
 legend
-saveas(fig, ['C:\Users\adam\OneDrive - University College London\UCL PhD\PhD Year 1\Projects\VERDICT Screening\Code\VERDICT-Screening\Noise Statistics\MLP\VERDICT Simulations\Figures\bias (Rice sigma0 ' num2str(sigma0rice) ') sigma0 ' num2str(sigma0) '.fig'])
+% saveas(fig, ['C:\Users\adam\OneDrive - University College London\UCL PhD\PhD Year 1\Projects\VERDICT Screening\Code\VERDICT-Screening\Noise Statistics\MLP\VERDICT Simulations\Figures\bias (Rice sigma0 ' num2str(sigma0rice) ') sigma0 ' num2str(sigma0) '.fig'])
 
 % Variance figure
 fig = figure;
@@ -231,5 +264,4 @@ xlabel('f_{IC}')
 ylabel('Variance')
 title(['\sigma_0 = ' num2str(sigma0)])
 legend
-saveas(fig, ['C:\Users\adam\OneDrive - University College London\UCL PhD\PhD Year 1\Projects\VERDICT Screening\Code\VERDICT-Screening\Noise Statistics\MLP\VERDICT Simulations\Figures\variance (Rice sigma0 ' num2str(sigma0rice) ') sigma0 ' num2str(sigma0) '.fig'])
-%% Present as table
+% saveas(fig, ['C:\Users\adam\OneDrive - University College London\UCL PhD\PhD Year 1\Projects\VERDICT Screening\Code\VERDICT-Screening\Noise Statistics\MLP\VERDICT Simulations\Figures\variance (Rice sigma0 ' num2str(sigma0rice) ') sigma0 ' num2str(sigma0) '.fig'])
