@@ -19,6 +19,9 @@ arguments
     opts.noisetype = 'Rice'
     opts.sigma0train = 0.05 
     opts.T2train = 10000
+
+    % For adaptive noise fitting 
+    opts.NoiseEchofnames = {}
     
     % Define folders
     opts.STUDY_path = "" 
@@ -46,9 +49,21 @@ end
 switch opts.fittingtechnique
 
     case 'MLP'
-        % Define output folder
-        output_path = join([opts.parent_folder "/VERDICT outputs/" string(opts.modeltype) "/" string(opts.schemename) "/" string(opts.fittingtechnique) "/" pat_num "/" string(opts.noisetype) "/T2_" string(opts.T2train) "/sigma_" num2str(opts.sigma0train)], "");
 
+        switch opts.noisetype
+
+            case 'Adaptive'
+                output_path = join([opts.parent_folder "/VERDICT outputs/" string(opts.modeltype) "/" string(opts.schemename) "/" string(opts.fittingtechnique) "/" pat_num "/" string(opts.noisetype) ], "");
+            
+            case 'Ratio'
+                % Define output folder
+                output_path = join([opts.parent_folder "/VERDICT outputs/" string(opts.modeltype) "/" string(opts.schemename) "/" string(opts.fittingtechnique) "/" pat_num "/" string(opts.noisetype) "/T2_" string(opts.T2train) "/sigma_" num2str(opts.sigma0train)], "");
+            
+            case 'Rice'
+                % Define output folder
+                output_path = join([opts.parent_folder "/VERDICT outputs/" string(opts.modeltype) "/" string(opts.schemename) "/" string(opts.fittingtechnique) "/" pat_num "/" string(opts.noisetype) "/T2_" string(opts.T2train) "/sigma_" num2str(opts.sigma0train)], "");
+
+        end
     case 'AMICO'
         % Define output folder
         output_path = join([opts.parent_folder "/VERDICT outputs/" string(opts.modeltype) "/" string(opts.schemename) "/" string(opts.fittingtechnique) "/" pat_num ], "");
@@ -118,6 +133,7 @@ switch opts.modeltype
             noisetype=opts.noisetype,...
             sigma0train = opts.sigma0train,...
             T2train=opts.T2train,...
+            NoiseEchofnames = opts.NoiseEchofnames,...
             fitting = fitting,...
             ncompart = ncompart, ...
             solver = opts.solver,...

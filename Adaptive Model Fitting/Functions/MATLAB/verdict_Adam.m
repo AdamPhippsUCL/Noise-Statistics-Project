@@ -63,6 +63,9 @@ arguments
     opts.sigma0train   
     opts.T2train  
 
+    % Adaptive noise fitting
+    opts.NoiseEchofnames
+
     opts.modelsfolder 
     opts.pythonfolder 
 

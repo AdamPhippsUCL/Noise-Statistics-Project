@@ -8,7 +8,7 @@ STUDY_path = "C:\Users\adam\OneDrive - University College London\UCL PhD\PhD Yea
 %% Define patient numbers
 
 % FOR VOLUNTEERS
-PatNums = {"20240610"};
+PatNums = {"20240614"};
 
 %% SAVED DATA
 
@@ -27,7 +27,7 @@ schemesfolder = "C:\Users\adam\OneDrive - University College London\UCL PhD\PhD 
 modelsfolder = "C:\Users\adam\OneDrive - University College London\UCL PhD\PhD Year 1\Projects\Noise Statistics Project\Code\Noise-Statistics-Project\Adaptive Model Fitting\MLP Models";
 
 % Define python folder
-pythonfolder = "C:\Users\adam\OneDrive - University College London\UCL PhD\PhD Year 1\Projects\Noise Statistics Project\Code\Noise-Statistics-Project\Adaptive Model Fitting\Functions\Python";
+pythonfolder = "C:\Users\adam\OneDrive - University College London\UCL PhD\PhD Year 1\Projects\General VERDICT Code\General-VERDICT-Code\MLP\Python";
 
 %% DEFINE VERDICT PROTOCOL
 
@@ -43,8 +43,9 @@ schemenames = {'Short Scheme v1'};
 % fittingtechniques =   { 'AMICO', 'MLP'};
 fittingtechniques = {'MLP'};
 
+
 % === Noise used in MLP training
-noisetype='Rice';
+noisetype = 'Adaptive';
 sigma0train = 0.025;
 T2train = 10000;
 
@@ -56,11 +57,10 @@ vADCbmax = 1501;
 %% Noise calibration
 
 % Define fnames of dual echo images
-echo1fname = "C:\Users\adam\OneDrive - University College London\UCL PhD\PhD Year 1\Projects\Noise Statistics Project\Imaging Data\Patient Volunteers\PE P\20240610\Series 1101 [MR - b1 NSA1LOW6te50P]\1.3.6.1.4.1.5962.99.1.740795050.145724320.1718727746218.570.0.dcm";
-echo2fname = "C:\Users\adam\OneDrive - University College London\UCL PhD\PhD Year 1\Projects\Noise Statistics Project\Imaging Data\Patient Volunteers\PE P\20240610\Series 1301 [MR - b1 NSA1LOW6te125P]\1.3.6.1.4.1.5962.99.1.740795050.145724320.1718727746218.820.0.dcm";
-echofnames = {echo1fname, echo2fname};
+NoiseEcho1fname = "C:\Users\adam\OneDrive - University College London\UCL PhD\PhD Year 1\Projects\Noise Statistics Project\Imaging Data\Patient Volunteers\PE P\20240614\Series 1101 [MR - b1 NSA1LOW6te50P]\1.3.6.1.4.1.5962.99.1.740795050.145724320.1718727746218.2451.0.dcm";
+NoiseEcho2fname = "C:\Users\adam\OneDrive - University College London\UCL PhD\PhD Year 1\Projects\Noise Statistics Project\Imaging Data\Patient Volunteers\PE P\20240614\Series 1201 [MR - b1 NSA1LOW6te100P]\1.3.6.1.4.1.5962.99.1.740795050.145724320.1718727746218.2667.0.dcm";
+NoiseEchofnames = {NoiseEcho1fname, NoiseEcho2fname};
 
-% RUN NOISE CALIBRATION HERE, T2 and sigma0 as inputs 
 
 
 for protindx = 1:length(modeltypes)
@@ -81,6 +81,7 @@ for protindx = 1:length(modeltypes)
             noisetype=noisetype,...
             sigma0train = sigma0train,...
             T2train=T2train,...
+            NoiseEchofnames = NoiseEchofnames,...
             STUDY_path=STUDY_path,...
             parent_folder=OutputFolder,...
             schemesfolder = schemesfolder,...

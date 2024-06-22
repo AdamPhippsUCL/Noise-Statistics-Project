@@ -12,7 +12,6 @@ arguments
 
     % image info
     opts.multiframe = true
-    opts.NSA = 4; % for corresponding diffusion images
 
     % Python script for normalising and saving diffusion images
     opts.pyscript = "C:\Users\adam\OneDrive - University College London\UCL PhD\Image-Processing\DICOM\Python\normaliseDiffusionImage.py";
@@ -24,7 +23,7 @@ arguments
     opts.mask = [];
 
     % Folder to save mat images in
-    opts.OutputFolder = "C:\Users\adam\OneDrive - University College London\UCL PhD\PhD Year 1\Projects\VERDICT Screening\Outputs\Noise Statistics"
+    opts.OutputFolder = ""
 
 end
 
@@ -39,7 +38,7 @@ end
 % 5. Return maps of sigma0 and T2
 
 
-opts.ImageOutputFolder = [char(opts.OutputFolder) '/' opts.DATE '/Images'];
+opts.ImageOutputFolder = [char(opts.OutputFolder)  '/Images'];
 
 %% 1. Read DICOM information for each echo image (Need their TE values)
 
@@ -151,7 +150,13 @@ for direcIndx1 = 1:Ndirec
 end
 
 
-%%
+%% Delete directory of images
+rmdir([char(opts.ImageOutputFolder)], 's')
+
+
+
+%% PARAMETER ESTIMATION
+
 % Define blank arrays for T2 and sigma0 estimates and error
 T2 = squeeze( zeros(size(RatioImageStack(:,:,:,1))) );
 sigma0 = squeeze( zeros(size(RatioImageStack(:,:,:,1))) );
@@ -172,7 +177,6 @@ pw = ceil((opts.patchsize-1)/2);
 %% Define histogram
 
 for zindx = zs
-    zindx
     for yindx = ys
         for xindx = xs
             
@@ -270,9 +274,6 @@ for zindx = zs
 end
 
 
-%% Account for NSA
-sigma0 = sigma0/sqrt(opts.NSA);
-
 %% Smoothing
 
 smoothsigma = 0.5;
@@ -285,12 +286,12 @@ end
 %% Save maps
 
 % Save Output images as mat files
-MapOutputFolder = [char(opts.OutputFolder) '/' opts.DATE '/Maps'];
+MapOutputFolder = char(opts.OutputFolder); %[char(opts.OutputFolder) '/' opts.DATE '/Maps'];
 
 save([MapOutputFolder '/T2.mat'], "T2")
 save([MapOutputFolder '/sigma0.mat'], "sigma0")
-save([MapOutputFolder '/img1.mat'], "img1")
-save([MapOutputFolder '/img2.mat'], "img2")
+% save([MapOutputFolder '/DTI1.mat'], "img1")
+% save([MapOutputFolder '/DTI2.mat'], "img2")
 
 % % % Filter slices
 % slice = 5;

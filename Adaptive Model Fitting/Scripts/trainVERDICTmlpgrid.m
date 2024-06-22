@@ -22,6 +22,9 @@ TrainDataFolder = char("C:\Users\adam\OneDrive - University College London\UCL P
 % Model folder
 ModelFolder = char("C:\Users\adam\OneDrive - University College London\UCL PhD\PhD Year 1\Projects\Noise Statistics Project\Code\Noise-Statistics-Project\Adaptive Model Fitting\MLP Models");
 
+% Python folder
+pythonfolder = char("C:\Users\adam\OneDrive - University College London\UCL PhD\PhD Year 1\Projects\General VERDICT Code\General-VERDICT-Code\MLP\Python");
+
 % Define model type
 modeltype = 'No VASC VERDICT';
 
@@ -30,12 +33,26 @@ schemename = 'Short Scheme v1';
 
 schemesfolder = char("C:\Users\adam\OneDrive - University College London\UCL PhD\PhD Year 1\Projects\Noise Statistics Project\Code\Noise-Statistics-Project\Adaptive Model Fitting\Schemes");
 
+
+% Save sigma0 and T2 values
+save([ModelFolder '/' modeltype '/' schemename '/' noisetype '/T2s.mat'], "T2s")
+save([ModelFolder '/' modeltype '/' schemename '/' noisetype '/sigma0s.mat'], "sigma0s")
+
+
 %% Train MLP grid
 for T2 = T2s
     for sigma0 = sigma0s
 
         % update model and training data folders
         % this_schemename = [schemename '/T2_' num2str(T2) '/sigma_' num2str(sigma0)];
-        trainMLP(modeltype, schemename, noisetype=noisetype, T2train = T2, sigma0train = sigma0, TrainDataFolder=TrainDataFolder, ModelFolder=ModelFolder)
+        trainMLP( ...
+            modeltype, ...
+            schemename, ...
+            noisetype=noisetype, ...
+            T2train = T2, ...
+            sigma0train = sigma0, ...
+            TrainDataFolder=TrainDataFolder, ...
+            ModelFolder=ModelFolder,...
+            pythonfolder = pythonfolder);
     end
 end

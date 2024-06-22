@@ -793,6 +793,10 @@ else % Bounding box mask (Not sure why input isn't working)
 end
 
 
+%% Noise estimation
+[sigma0, T2, resnorm] = EstimateNoiseParameters(opts.NoiseEchofnames{1}, opts.NoiseEchofnames{2}, OutputFolder=output_folder);
+
+
 %% Apply fitting
 
 % ===== PERFORM FITTING
